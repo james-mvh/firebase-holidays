@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Sidebar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { MainNav } from '@/components/layout/main-nav';
 import { Header } from '@/components/layout/header';
-import { ensureUserCookie, getCurrentUser } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { getFinancialYears } from '@/lib/data';
 import { redirect } from 'next/navigation';
 import { AppProvider } from '@/context/app-provider';
@@ -14,7 +14,6 @@ export default async function MainLayout({
   children: ReactNode;
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  await ensureUserCookie(); // Ensure a cookie is set if it's missing
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     // In a real app, you'd redirect to a sign-in page.

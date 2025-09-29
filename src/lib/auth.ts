@@ -13,16 +13,21 @@ export async function getCurrentUser(): Promise<User | null> {
 
   if (userId) {
     const user = await getUserById(userId);
+    // If user from cookie is valid, return it
     if (user) {
       return user;
     }
   }
 
-  // If no valid user found, return the first user as a default, 
-  // but don't set the cookie here. The layout will handle ensuring the cookie is set.
+  // If no cookie or invalid user ID in cookie, check for any available users
   const users = await getUsers();
   if (users.length > 0) {
-    return users[0];
+    const defaultUser = users[0];
+    // This is not a server action, so we can't SET the cookie here.
+    // In a real app, the cookie would be set upon login.
+    // For this prototype, we'll just return the default user.
+    // The `switchUser` action *can* set the cookie.
+    return defaultUser;
   }
 
   return null;
@@ -37,16 +42,4 @@ export async function setCurrentUser(userId: string) {
   cookies().set(COOKIE_NAME, userId);
   // Revalidate the entire site to reflect the new user's permissions and data
   revalidatePath('/', 'layout');
-}
-
-export async function ensureUserCookie() {
-    const cookieStore = cookies();
-    if (!cookieStore.has(COOKIE_NAME)) {
-        const users = await getUsers();
-        if (users.length > 0) {
-            cookies().set(COOKIE_NAME, users[0].id);
-            // Revalidate to ensure subsequent renders have the cookie
-            revalidatePath('/', 'layout');
-        }
-    }
 }
