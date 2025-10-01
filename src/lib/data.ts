@@ -318,11 +318,11 @@ export async function getHolidaysForUser(userId: string, financialYearId: string
 export async function getUsersByDepartment(departmentId: string): Promise<User[]> {
     const q = query(
         collections.users,
-        where('departmentId', '==', departmentId)
+        where('departmentId', '==', departmentId),
+        where('archived', '!=', true)
     ).withConverter(userConverter);
     const snapshot = await getDocs(q);
-    // Filter for non-archived users in code
-    return snapshot.docs.map(doc => doc.data()).filter(user => !user.archived);
+    return snapshot.docs.map(doc => doc.data());
 }
 
 export async function getHolidaysForDepartment(departmentId: string, financialYearId: string): Promise<HolidayRequest[]> {
