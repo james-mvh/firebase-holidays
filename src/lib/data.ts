@@ -1,6 +1,7 @@
-import { collection, doc, getDoc, getDocs, setDoc, query, where, writeBatch, getCountFromServer } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, query, where, writeBatch, getCountFromServer, addDoc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
-import type { User, Department, FinancialYear, HolidayRequest, UserRole } from './types';
+import type { User, Department, FinancialYear, HolidayRequest, HolidayRequestStatus, UserRole } from './types';
+import { getSettings } from './actions';
 
 // Mock Data for seeding
 const mockUsers: Omit<User, 'id'>[] = [
@@ -10,7 +11,7 @@ const mockUsers: Omit<User, 'id'>[] = [
     role: 'admin',
     departmentId: 'dpt_mgmt',
     createdAt: new Date('2023-01-10T10:00:00Z'),
-    avatarUrl: '/avatars/1.jpg',
+    avatarUrl: 'https://i.pravatar.cc/150?u=admin@finyearly.com',
   },
   {
     name: 'Manager User',
@@ -18,7 +19,7 @@ const mockUsers: Omit<User, 'id'>[] = [
     role: 'manager',
     departmentId: 'dpt_eng',
     createdAt: new Date('2023-01-15T11:00:00Z'),
-    avatarUrl: '/avatars/2.jpg',
+    avatarUrl: 'https://i.pravatar.cc/150?u=manager@finyearly.com',
   },
   {
     name: 'Dev One',
@@ -26,7 +27,7 @@ const mockUsers: Omit<User, 'id'>[] = [
     role: 'user',
     departmentId: 'dpt_eng',
     createdAt: new Date('2023-02-01T09:00:00Z'),
-    avatarUrl: '/avatars/3.jpg',
+    avatarUrl: 'https://i.pravatar.cc/150?u=dev1@finyearly.com',
   },
   {
     name: 'Sales Person',
@@ -34,7 +35,7 @@ const mockUsers: Omit<User, 'id'>[] = [
     role: 'user',
     departmentId: 'dpt_sales',
     createdAt: new Date('2023-02-05T14:00:00Z'),
-    avatarUrl: '/avatars/4.jpg',
+    avatarUrl: 'https://i.pravatar.cc/150?u=sales1@finyearly.com',
   },
 ];
 
@@ -120,6 +121,27 @@ const collections = {
     allowances: collection(db, 'allowances')
 };
 
+// Generic converter
+const createConverter = <T>() => ({
+    toFirestore: (data: Partial<T>) => data,
+    fromFirestore: (snapshot: any, options: any): T => {
+        const data = snapshot.data(options);
+        // Convert Firestore Timestamps to JS Dates
+        for (const key in data) {
+            if (data[key]?.toDate instanceof Function) {
+                data[key] = data[key].toDate();
+            }
+        }
+        return { id: snapshot.id, ...data } as T;
+    }
+});
+
+const userConverter = createConverter<User>();
+const departmentConverter = createConverter<Department>();
+const financialYearConverter = createConverter<FinancialYear>();
+const holidayRequestConverter = createConverter<HolidayRequest>();
+
+
 async function seedDatabase() {
     console.log('Checking if database is seeded...');
 
@@ -168,48 +190,74 @@ seedDatabase().catch(console.error);
 
 // API Functions
 export async function getUsers(): Promise<User[]> {
-    const snapshot = await getDocs(collections.users);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    const q = query(collections.users).withConverter(userConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
-    const docRef = doc(db, 'users', id);
+    const docRef = doc(db, 'users', id).withConverter(userConverter);
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as User;
-    }
-    return undefined;
+    return docSnap.exists() ? docSnap.data() : undefined;
+}
+
+export async function addUser(userData: Omit<User, 'id' | 'createdAt' | 'avatarUrl'>) {
+    await addDoc(collections.users, {
+        ...userData,
+        createdAt: new Date(),
+        avatarUrl: `https://i.pravatar.cc/150?u=${userData.email}`,
+    });
+}
+
+export async function updateUser(id: string, userData: Partial<Omit<User, 'id'>>) {
+    const userRef = doc(db, 'users', id);
+    await updateDoc(userRef, userData);
+}
+
+export async function archiveUser(id: string, archived: boolean) {
+    const userRef = doc(db, 'users', id);
+    await updateDoc(userRef, { archived });
 }
 
 export async function getDepartments(): Promise<Department[]> {
-    const snapshot = await getDocs(collections.departments);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department));
+    const q = query(collections.departments).withConverter(departmentConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
 }
 
 export async function getDepartmentById(id: string): Promise<Department | undefined> {
-    const docRef = doc(db, 'departments', id);
+    if (!id) return undefined;
+    const docRef = doc(db, 'departments', id).withConverter(departmentConverter);
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Department;
-    }
-    return undefined;
+    return docSnap.exists() ? docSnap.data() : undefined;
 }
 
+export async function addDepartment(deptData: Omit<Department, 'id'>) {
+    await addDoc(collections.departments, deptData);
+}
+
+export async function updateDepartment(id: string, deptData: Partial<Omit<Department, 'id'>>) {
+    const deptRef = doc(db, 'departments', id);
+    await updateDoc(deptRef, deptData);
+}
+
+export async function deleteDepartment(id: string) {
+    const deptRef = doc(db, 'departments', id);
+    await deleteDoc(deptRef);
+}
+
+
 export async function getFinancialYears(): Promise<FinancialYear[]> {
-    const snapshot = await getDocs(collections.financialYears);
-    const years = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinancialYear));
-    // The date objects are not automatically converted, so we do it here.
-    return years.map(y => ({
-        ...y,
-        startDate: (y.startDate as any).toDate(),
-        endDate: (y.endDate as any).toDate(),
-    })).sort((a,b) => a.startDate.getTime() - b.startDate.getTime());
+    const q = query(collections.financialYears, orderBy('startDate', 'asc')).withConverter(financialYearConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
 }
 
 export async function getUserAllowance(userId: string, financialYearId: string): Promise<{ totalAllowance: number, holidaysTaken: number }> {
+    const settings = await getSettings();
     const allowanceRef = doc(db, 'allowances', `${financialYearId}_${userId}`);
     const allowanceSnap = await getDoc(allowanceRef);
-    const totalAllowance = allowanceSnap.exists() ? allowanceSnap.data().totalAllowance : 25;
+    const totalAllowance = allowanceSnap.exists() ? allowanceSnap.data().totalAllowance : settings.defaultAllowance;
 
     const requestsQuery = query(
         collections.holidayRequests,
@@ -225,4 +273,101 @@ export async function getUserAllowance(userId: string, financialYearId: string):
         totalAllowance,
         holidaysTaken,
     };
+}
+
+
+export async function getHolidayRequestsForUser(userId: string, financialYearId: string): Promise<HolidayRequest[]> {
+    const q = query(
+        collections.holidayRequests,
+        where('userId', '==', userId),
+        where('financialYearId', '==', financialYearId),
+        orderBy('createdAt', 'desc')
+    ).withConverter(holidayRequestConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+}
+
+export async function createHolidayRequest(data: Omit<HolidayRequest, 'id'>) {
+    await addDoc(collections.holidayRequests, data);
+}
+
+export async function deleteHolidayRequest(id: string) {
+    await deleteDoc(doc(db, 'holidayRequests', id));
+}
+
+export async function reviewHolidayRequest(id: string, status: HolidayRequestStatus, reviewedBy: string) {
+    const reqRef = doc(db, 'holidayRequests', id);
+    await updateDoc(reqRef, {
+        status,
+        reviewedBy,
+        reviewedAt: new Date()
+    });
+}
+
+export async function getHolidaysForUser(userId: string, financialYearId: string): Promise<HolidayRequest[]> {
+    const q = query(
+        collections.holidayRequests,
+        where('userId', '==', userId),
+        where('financialYearId', '==', financialYearId),
+        where('status', '==', 'approved')
+    ).withConverter(holidayRequestConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+}
+
+export async function getUsersByDepartment(departmentId: string): Promise<User[]> {
+    const q = query(
+        collections.users,
+        where('departmentId', '==', departmentId),
+        where('archived', '!=', true)
+    ).withConverter(userConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+}
+
+export async function getHolidaysForDepartment(departmentId: string, financialYearId: string): Promise<HolidayRequest[]> {
+     const usersInDept = await getUsersByDepartment(departmentId);
+     if (usersInDept.length === 0) return [];
+     
+     const userIds = usersInDept.map(u => u.id);
+
+     const q = query(
+        collections.holidayRequests,
+        where('userId', 'in', userIds),
+        where('financialYearId', '==', financialYearId),
+        where('status', '==', 'approved')
+    ).withConverter(holidayRequestConverter);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+}
+
+export async function getPendingRequestsForManager(managerId: string): Promise<HolidayRequest[]> {
+    const manager = await getUserById(managerId);
+    if (!manager) return [];
+
+    let usersToManage: User[] = [];
+
+    // Admins can manage everyone
+    if (manager.role === 'admin') {
+        const allUsers = await getUsers();
+        usersToManage = allUsers.filter(u => u.id !== managerId && !u.archived);
+    } 
+    // Managers can manage their department
+    else if (manager.role === 'manager') {
+        usersToManage = await getUsersByDepartment(manager.departmentId);
+        usersToManage = usersToManage.filter(u => u.id !== managerId);
+    }
+    
+    if (usersToManage.length === 0) return [];
+
+    const userIdsToManage = usersToManage.map(u => u.id);
+
+    const q = query(
+        collections.holidayRequests,
+        where('userId', 'in', userIdsToManage),
+        where('status', '==', 'pending')
+    ).withConverter(holidayRequestConverter);
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
 }
