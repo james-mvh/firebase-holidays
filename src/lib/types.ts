@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'manager' | 'user';
+export type UserRole = "admin" | "manager" | "user";
 
 export interface User {
   id: string;
@@ -13,7 +13,7 @@ export interface User {
 
 export interface Department {
   id: string;
-  name:string;
+  name: string;
 }
 
 export interface FinancialYear {
@@ -23,24 +23,30 @@ export interface FinancialYear {
   endDate: Date;
 }
 
-export type HolidayRequestStatus = 'pending' | 'approved' | 'denied';
-export type DayHalf = 'am' | 'pm' | 'full';
+export type HolidayRequestStatus = "pending" | "approved" | "denied";
+export type DayHalf = "am" | "pm" | "full";
 
 export interface HolidayRequest {
-    id: string;
-    userId: string;
-    financialYearId: string;
-    startDate: Date;
-    startType: DayHalf;
-    endDate: Date;
-    endType: DayHalf;
-    daysCount: number;
-    status: HolidayRequestStatus;
-    createdAt: Date;
-    reviewedBy?: string;
-    reviewedAt?: Date;
+  id: string;
+  userId: string;
+  financialYearId: string;
+  startDate: Date;
+  startType: DayHalf;
+  endDate: Date;
+  endType: DayHalf;
+  daysCount: number;
+  status: HolidayRequestStatus;
+  createdAt: Date;
+  reviewedBy?: string;
+  reviewedAt?: Date;
 }
 
 export interface AppSettings {
-    defaultAllowance: number;
+  defaultAllowance: number;
+}
+
+export interface Allowance {
+  userId: string;
+  financialYearId: string;
+  totalAllowance: number;
 }
