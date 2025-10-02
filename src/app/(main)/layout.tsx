@@ -1,11 +1,15 @@
-import type { ReactNode } from 'react';
-import { Sidebar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { MainNav } from '@/components/layout/main-nav';
-import { Header } from '@/components/layout/header';
-import { getCurrentUser } from '@/lib/auth';
-import { getFinancialYears } from '@/lib/data';
-import { redirect } from 'next/navigation';
-import { AppProvider } from '@/context/app-provider';
+import type { ReactNode } from "react";
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarInset,
+} from "@/components/ui/sidebar";
+import { MainNav } from "@/components/layout/main-nav";
+import { Header } from "@/components/layout/header";
+import { getCurrentUser } from "@/lib/auth";
+import { getFinancialYears } from "@/lib/data";
+import { redirect } from "next/navigation";
+import { AppProvider } from "@/context/app-provider";
 
 export default async function MainLayout({
   children,
@@ -26,8 +30,11 @@ export default async function MainLayout({
   }
 
   const financialYears = await getFinancialYears();
-  const fyParam = searchParams?.fy as string | undefined;
-  const selectedFinancialYear = financialYears.find(fy => fy.id === fyParam) ?? financialYears[financialYears.length - 1] ?? null;
+  const fyParam = (await searchParams)?.fy as string | undefined;
+  const selectedFinancialYear =
+    financialYears.find((fy) => fy.id === fyParam) ??
+    financialYears[financialYears.length - 1] ??
+    null;
 
   return (
     <AppProvider

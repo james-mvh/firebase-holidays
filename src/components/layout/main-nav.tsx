@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from "next/navigation";
 import {
   SidebarContent,
   SidebarHeader,
@@ -10,12 +10,11 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import { UserNav } from './user-nav';
-import { navLinks, type NavLink } from '@/config/nav-config';
-import { useApp } from '@/context/app-provider';
-import { Gem } from 'lucide-react';
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { UserNav } from "./user-nav";
+import { navLinks, type NavLink } from "@/config/nav-config";
+import { useApp } from "@/context/app-provider";
 
 export function MainNav() {
   const pathname = usePathname();
@@ -25,10 +24,12 @@ export function MainNav() {
 
   const userRole = currentUser.role;
 
-  const accessibleLinks = navLinks.filter((link) => link.roles.includes(userRole));
+  const accessibleLinks = navLinks.filter((link) =>
+    link.roles.includes(userRole)
+  );
 
   const linkGroups = accessibleLinks.reduce((acc, link) => {
-    const group = link.group || 'General';
+    const group = link.group || "General";
     if (!acc[group]) {
       acc[group] = [];
     }
@@ -39,9 +40,11 @@ export function MainNav() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <Gem className="size-6 text-primary" />
-            <h1 className="text-xl font-bold font-headline">FinYearly</h1>
+        <div className="flex flex-col items-start gap-y-1 p-3 py-2 pb-0">
+          <img src="/logo.svg" alt="logo" className="h-16 w-auto block" />
+          {/* <h1 className="text-xl font-bold font-headline leading-snug">
+            Holidays Planner
+          </h1> */}
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
