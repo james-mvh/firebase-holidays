@@ -24,13 +24,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createUsersColumns } from './users-columns';
-import type { Department, User } from '@/lib/types';
+import type { Department, User, UserWithAllowance } from '@/lib/types';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
 import { DataTableFacetedFilter } from '@/components/ui/data-table-faceted-filter';
 
 
 interface DataTableProps {
-  data: User[];
+  data: UserWithAllowance[];
   departments: Department[];
 }
 

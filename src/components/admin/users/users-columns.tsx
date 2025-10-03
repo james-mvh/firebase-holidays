@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { User, Department } from '@/lib/types';
+import type { User, Department, UserWithAllowance } from '@/lib/types';
 import { UsersTableActions } from './users-table-actions';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ const getInitials = (name: string) => {
     return name.substring(0, 2);
 }
 
-export const createUsersColumns = (departments: Department[]): ColumnDef<User>[] => [
+export const createUsersColumns = (departments: Department[]): ColumnDef<UserWithAllowance>[] => [
   {
     accessorKey: 'name',
     header: 'User',
@@ -55,6 +55,16 @@ export const createUsersColumns = (departments: Department[]): ColumnDef<User>[]
         const role = row.getValue('role') as string;
         return <Badge variant="secondary" className="capitalize">{role}</Badge>
     }
+  },
+  {
+    accessorKey: 'totalAllowance',
+    header: 'Allowance',
+    cell: ({ row }) => `${row.original.totalAllowance} days`,
+  },
+  {
+    accessorKey: 'remainingDays',
+    header: 'Remaining',
+    cell: ({ row }) => `${row.original.remainingDays} days`,
   },
   {
     accessorKey: 'createdAt',

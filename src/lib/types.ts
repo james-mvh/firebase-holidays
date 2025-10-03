@@ -11,6 +11,11 @@ export interface User {
   archived?: boolean;
 }
 
+export interface UserWithAllowance extends User {
+  totalAllowance: number;
+  remainingDays: number;
+}
+
 export interface Department {
   id: string;
   name: string;
