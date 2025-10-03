@@ -2,30 +2,17 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { HolidayRequestStatus } from '@/lib/types';
-import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthorisationStatusFilterProps {
   currentStatus: HolidayRequestStatus | 'all';
+  onStatusChange: (status: HolidayRequestStatus | 'all') => void;
 }
 
 const statuses: (HolidayRequestStatus | 'all')[] = ['pending', 'approved', 'denied', 'all'];
 
-export function AuthorisationStatusFilter({ currentStatus }: AuthorisationStatusFilterProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const handleStatusChange = (status: string) => {
-    const params = new URLSearchParams(window.location.search);
-    if (status === 'pending') {
-      params.delete('status');
-    } else {
-      params.set('status', status);
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
+export function AuthorisationStatusFilter({ currentStatus, onStatusChange }: AuthorisationStatusFilterProps) {
   return (
-    <Tabs value={currentStatus} onValueChange={handleStatusChange}>
+    <Tabs value={currentStatus} onValueChange={(value) => onStatusChange(value as any)}>
       <TabsList>
         {statuses.map((status) => (
           <TabsTrigger key={status} value={status} className="capitalize">
