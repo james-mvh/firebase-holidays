@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getPendingRequestsForManager, getUsers } from '@/lib/data';
+import { getPendingRequestsForManager, getUsers, getDepartments } from '@/lib/data';
 import { getCurrentUser } from '@/lib/auth';
 import { notFound } from 'next/navigation';
 import { AuthorisationDataTable } from '@/components/authorisation/authorisation-data-table';
+import type { Department } from '@/lib/types';
 
 export default async function AuthorisationPage() {
   const manager = await getCurrentUser();
@@ -11,12 +12,20 @@ export default async function AuthorisationPage() {
   }
   const requests = await getPendingRequestsForManager(manager.id);
   const users = await getUsers();
+  const departments = await getDepartments();
 
   const usersMap = new Map(users.map(u => [u.id, u]));
-  const requestsWithUsers = requests.map(req => ({
-    ...req,
-    user: usersMap.get(req.userId)
-  }));
+  const departmentsMap = new Map(departments.map(d => [d.id, d]));
+
+  const requestsWithDetails = requests.map(req => {
+    const user = usersMap.get(req.userId);
+    const department = user ? departmentsMap.get(user.departmentId) : undefined;
+    return {
+      ...req,
+      user,
+      department
+    };
+  });
 
 
   return (
@@ -27,7 +36,7 @@ export default async function AuthorisationPage() {
           <CardTitle>Pending Requests</CardTitle>
         </CardHeader>
         <CardContent>
-           <AuthorisationDataTable data={requestsWithUsers} />
+           <AuthorisationDataTable data={requestsWithDetails} />
         </CardContent>
       </Card>
     </div>

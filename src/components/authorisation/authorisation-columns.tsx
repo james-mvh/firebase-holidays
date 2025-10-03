@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { HolidayRequest, User } from '@/lib/types';
+import type { HolidayRequest, User, Department } from '@/lib/types';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +17,7 @@ const getInitials = (name: string) => {
     return name.substring(0, 2);
 }
 
-export const createAuthorisationColumns = (): ColumnDef<HolidayRequest & { user?: User }>[] => [
+export const createAuthorisationColumns = (): ColumnDef<HolidayRequest & { user?: User, department?: Department }>[] => [
   {
     accessorKey: 'user',
     header: 'User',
@@ -36,6 +36,13 @@ export const createAuthorisationColumns = (): ColumnDef<HolidayRequest & { user?
                 </div>
             </div>
         )
+    }
+  },
+  {
+    accessorKey: 'department',
+    header: 'Department',
+    cell: ({ row }) => {
+      return row.original.department?.name ?? 'N/A';
     }
   },
   {

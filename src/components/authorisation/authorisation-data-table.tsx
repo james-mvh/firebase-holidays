@@ -20,11 +20,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { HolidayRequest, User } from '@/lib/types';
+import { HolidayRequest, User, Department } from '@/lib/types';
 import { createAuthorisationColumns } from './authorisation-columns';
 
 interface DataTableProps {
-  data: (HolidayRequest & { user?: User })[];
+  data: (HolidayRequest & { user?: User, department?: Department })[];
 }
 
 export function AuthorisationDataTable({ data }: DataTableProps) {
