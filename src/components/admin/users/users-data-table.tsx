@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -70,7 +71,7 @@ export function UsersDataTable({ data, departments, currentUser }: DataTableProp
             }
             className="h-8 w-[150px] lg:w-[250px]"
           />
-          {table.getColumn("departmentId") && (
+          {currentUser.role === 'admin' && table.getColumn("departmentId") && (
             <DataTableFacetedFilter
               column={table.getColumn("departmentId")}
               title="Department"
