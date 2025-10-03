@@ -69,7 +69,7 @@ export function UsersDataTable({ data, departments, currentUser }: DataTableProp
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
-            className="h-8 w-[150px] lg:w-[250px]"
+            className="text-sm h-8 w-[150px] lg:w-[250px]"
           />
           {currentUser.role === 'admin' && table.getColumn("departmentId") && (
             <DataTableFacetedFilter

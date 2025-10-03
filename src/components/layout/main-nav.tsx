@@ -40,8 +40,12 @@ export function MainNav() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex flex-col items-start gap-y-1 p-3 py-2 pb-0">
-          <img src="/logo.svg" alt="logo" className="h-16 w-auto block" />
+        <div className="flex flex-col items-start gap-y-1 pr-4 pt-2 pb-0">
+          <img
+            src="/logo.svg"
+            alt="logo"
+            className="h-14 w-auto block mx-auto"
+          />
           {/* <h1 className="text-xl font-bold font-headline leading-snug">
             Holidays Planner
           </h1> */}
