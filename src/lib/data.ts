@@ -213,25 +213,15 @@ export async function getHolidaysForUser(
 }
 
 export async function getUsersByDepartment(
-  departmentId: string,
-  includeArchived = false
+  departmentId: string
 ): Promise<User[]> {
-  let q;
-  if (includeArchived) {
-    q = query(
-      collections.users,
-      where("departmentId", "==", departmentId)
-    ).withConverter(userConverter);
-  } else {
-    q = query(
-      collections.users,
-      where("departmentId", "==", departmentId),
-      where("archived", "!=", true)
-    ).withConverter(userConverter);
-  }
-
+  const q = query(
+    collections.users,
+    where("departmentId", "==", departmentId)
+  ).withConverter(userConverter);
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => doc.data());
+  const result = snapshot.docs.map((doc) => doc.data());
+  return result;
 }
 
 export async function getHolidaysForDepartment(
