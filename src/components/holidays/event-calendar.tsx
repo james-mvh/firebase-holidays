@@ -75,40 +75,38 @@ export function EventCalendar({ holidays, financialYear, users, showUser }: Even
   const goToPreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
   const holidaysWithLayout = useMemo(() => {
-    const weekStarts = weeks.map(w => startOfWeek(w, { weekStartsOn: 1 }));
+    const sortedHolidays = [...holidays].sort((a, b) => differenceInCalendarDays(a.startDate, b.startDate));
+    const layout: (HolidayRequest & { eventRow: number })[] = [];
 
-    return holidays.map(holiday => {
-      const holidayInterval = { start: holiday.startDate, end: holiday.endDate };
+    sortedHolidays.forEach(holiday => {
       let eventRow = 0;
-      
-      for(const weekStart of weekStarts) {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-        const weekInterval = { start: weekStart, end: weekEnd };
-        
-        if (isWithinInterval(holiday.startDate, weekInterval) || isWithinInterval(weekStart, holidayInterval)) {
-          // Find the first available row for this holiday in this week
-          const existingEventsInWeek = holidays
-            .filter(h => h.id !== holiday.id)
-            .filter(h => {
-              const otherInterval = { start: h.startDate, end: h.endDate };
-              return (isWithinInterval(h.startDate, weekInterval) || isWithinInterval(weekStart, otherInterval))
-            })
-            .map(h => holidaysWithLayout.find(hl => hl.id === h.id)?.eventRow ?? -1)
-            .filter(row => row !== -1);
-          
-          while(existingEventsInWeek.includes(eventRow)) {
-            eventRow++;
+      const holidayInterval = { start: holiday.startDate, end: holiday.endDate };
+
+      // Find a non-overlapping row
+      let rowIsAvailable = false;
+      while (!rowIsAvailable) {
+        rowIsAvailable = true;
+        for (const placedEvent of layout) {
+          if (placedEvent.eventRow === eventRow) {
+            const placedInterval = { start: placedEvent.startDate, end: placedEvent.endDate };
+            // Check for overlap
+            if (isWithinInterval(holiday.startDate, placedInterval) || 
+                isWithinInterval(holiday.endDate, placedInterval) ||
+                isWithinInterval(placedEvent.startDate, holidayInterval)) {
+              rowIsAvailable = false;
+              eventRow++;
+              break;
+            }
           }
-          break; // Found the starting week, determine row and stop
         }
       }
-      return { ...holiday, eventRow };
+      layout.push({ ...holiday, eventRow });
     });
+    return layout;
+  }, [holidays]);
 
-  }, [holidays, weeks]);
 
-
-  const renderHoliday = (holiday: HolidayRequest, weekStart: Date) => {
+  const renderHoliday = (holiday: HolidayRequest & { eventRow: number }, weekStart: Date) => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
     
     const holidayStartInWeek = isWithinInterval(holiday.startDate, { start: weekStart, end: weekEnd });
@@ -127,8 +125,7 @@ export function EventCalendar({ holidays, financialYear, users, showUser }: Even
 
     const user = usersMap.get(holiday.userId);
     const colorClass = userColorMap.get(holiday.userId) || userColors[0];
-    const eventWithLayout = holidaysWithLayout.find(h => h.id === holiday.id);
-    const topOffset = 30 + (eventWithLayout?.eventRow ?? 0) * 28;
+    const topOffset = 30 + holiday.eventRow * 28;
 
     return (
        <Popover>
