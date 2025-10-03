@@ -1,4 +1,5 @@
-import { HolidayCalendar } from "@/components/holidays/holiday-calendar";
+
+import { EventCalendar } from "@/components/holidays/event-calendar";
 import { getCurrentUser } from "@/lib/auth";
 import { getFinancialYears, getHolidaysForUser } from "@/lib/data";
 import { notFound } from "next/navigation";
@@ -25,9 +26,9 @@ export default async function MyHolidaysPage({
   const holidays = await getHolidaysForUser(user.id, selectedFinancialYear.id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col h-full">
       <h1 className="text-2xl font-bold font-headline">My Holidays</h1>
-      <HolidayCalendar
+      <EventCalendar
         holidays={holidays}
         financialYear={selectedFinancialYear}
         users={[user]}

@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import type { HolidayRequest, FinancialYear, User } from '@/lib/types';
-import { addDays, eachDayOfInterval, isSameDay } from 'date-fns';
+import { eachDayOfInterval, isSameDay } from 'date-fns';
 import {
   Popover,
   PopoverContent,
@@ -68,7 +69,7 @@ export function HolidayCalendar({ holidays, financialYear, users, showUser }: Ho
     <Card>
       <CardContent className="p-2 md:p-6 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-             <Popover>
+             <Popover open={holidaysOnSelectedDay.length > 0} onOpenChange={(open) => !open && setSelectedDay(undefined)}>
                 <PopoverTrigger asChild>
                     <Calendar
                         mode="single"
