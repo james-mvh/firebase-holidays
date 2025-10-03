@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateUser } from '@/lib/actions';
 import type { Department, User } from '@/lib/types';
 import { UserFormFields } from './user-form-fields';
+import { useApp } from '@/context/app-provider';
 
 interface EditUserDialogProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ interface EditUserDialogProps {
 
 export function EditUserDialog({ isOpen, setIsOpen, user, departments }: EditUserDialogProps) {
   const { toast } = useToast();
+  const { currentUser } = useApp();
   const [state, dispatch] = useFormState(updateUser, { message: null, errors: {} });
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export function EditUserDialog({ isOpen, setIsOpen, user, departments }: EditUse
               Update user details.
             </DialogDescription>
           </DialogHeader>
-          <UserFormFields user={user} departments={departments} errors={state.errors} />
+          <UserFormFields user={user} departments={departments} errors={state.errors} currentUser={currentUser} />
           <DialogFooter className="mt-4">
              <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
             <Button type="submit">Save Changes</Button>

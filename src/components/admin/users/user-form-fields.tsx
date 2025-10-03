@@ -7,11 +7,13 @@ interface UserFormFieldsProps {
     user?: User;
     departments: Department[];
     errors?: Record<string, string[] | undefined>;
+    currentUser?: User | null;
 }
 
 const roles: UserRole[] = ['user', 'manager', 'admin'];
 
-export function UserFormFields({ user, departments, errors }: UserFormFieldsProps) {
+export function UserFormFields({ user, departments, errors, currentUser }: UserFormFieldsProps) {
+    const isAdmin = currentUser?.role === 'admin';
     return (
         <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -26,7 +28,7 @@ export function UserFormFields({ user, departments, errors }: UserFormFieldsProp
             </div>
             <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select name="role" defaultValue={user?.role}>
+                <Select name="role" defaultValue={user?.role} disabled={!isAdmin}>
                     <SelectTrigger id="role">
                         <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -40,7 +42,7 @@ export function UserFormFields({ user, departments, errors }: UserFormFieldsProp
             </div>
             <div className="space-y-2">
                 <Label htmlFor="departmentId">Department</Label>
-                <Select name="departmentId" defaultValue={user?.departmentId}>
+                <Select name="departmentId" defaultValue={user?.departmentId} disabled={!isAdmin}>
                     <SelectTrigger id="departmentId">
                         <SelectValue placeholder="Select a department" />
                     </SelectTrigger>

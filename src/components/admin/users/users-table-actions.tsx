@@ -28,9 +28,10 @@ import { EditUserDialog } from './edit-user-dialog';
 interface UsersTableActionsProps {
   user: User;
   departments: Department[];
+  currentUser: User;
 }
 
-export function UsersTableActions({ user, departments }: UsersTableActionsProps) {
+export function UsersTableActions({ user, departments, currentUser }: UsersTableActionsProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -42,6 +43,10 @@ export function UsersTableActions({ user, departments }: UsersTableActionsProps)
     }
     setIsArchiveDialogOpen(false);
   }
+  
+  const canEdit = currentUser.role === 'admin' || (currentUser.role === 'manager' && currentUser.departmentId === user.departmentId);
+  const canArchive = currentUser.role === 'admin';
+
 
   return (
     <>
@@ -54,36 +59,44 @@ export function UsersTableActions({ user, departments }: UsersTableActionsProps)
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsArchiveDialogOpen(true)} className="text-destructive">
-            Archive
-          </DropdownMenuItem>
+          {canEdit && (
+            <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+              Edit
+            </DropdownMenuItem>
+          )}
+          {canArchive && (
+            <DropdownMenuItem onClick={() => setIsArchiveDialogOpen(true)} className="text-destructive">
+              Archive
+            </DropdownMenuItem>
+           )}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <EditUserDialog
-        isOpen={isEditDialogOpen}
-        setIsOpen={setIsEditDialogOpen}
-        user={user}
-        departments={departments}
-      />
+      {canEdit && (
+        <EditUserDialog
+            isOpen={isEditDialogOpen}
+            setIsOpen={setIsEditDialogOpen}
+            user={user}
+            departments={departments}
+        />
+      )}
       
-      <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action will archive the user <strong>{user.name}</strong>. They will no longer be able to log in.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchive}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {canArchive && (
+        <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                This action will archive the user <strong>{user.name}</strong>. They will no longer be able to log in.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleArchive}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }

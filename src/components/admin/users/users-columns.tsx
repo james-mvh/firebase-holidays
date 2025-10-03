@@ -17,7 +17,7 @@ const getInitials = (name: string) => {
     return name.substring(0, 2);
 }
 
-export const createUsersColumns = (departments: Department[]): ColumnDef<UserWithAllowance>[] => [
+export const createUsersColumns = (departments: Department[], currentUser: User): ColumnDef<UserWithAllowance>[] => [
   {
     accessorKey: 'name',
     header: 'User',
@@ -88,7 +88,7 @@ export const createUsersColumns = (departments: Department[]): ColumnDef<UserWit
     id: 'actions',
     cell: ({ row }) => {
       const user = row.original;
-      return <UsersTableActions user={user} departments={departments} />;
+      return <UsersTableActions user={user} departments={departments} currentUser={currentUser} />;
     },
     enableSorting: false,
     enableHiding: false,

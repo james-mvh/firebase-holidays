@@ -32,13 +32,14 @@ import { DataTableFacetedFilter } from '@/components/ui/data-table-faceted-filte
 interface DataTableProps {
   data: UserWithAllowance[];
   departments: Department[];
+  currentUser: User;
 }
 
-export function UsersDataTable({ data, departments }: DataTableProps) {
+export function UsersDataTable({ data, departments, currentUser }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  const columns = React.useMemo(() => createUsersColumns(departments), [departments]);
+  const columns = React.useMemo(() => createUsersColumns(departments, currentUser), [departments, currentUser]);
 
   const table = useReactTable({
     data,

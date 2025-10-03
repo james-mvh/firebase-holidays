@@ -60,7 +60,7 @@ export const navLinks: NavLink[] = [
     href: "/admin/users",
     label: "Users",
     icon: Users,
-    roles: ["admin"],
+    roles: ["admin", "manager"],
     group: "Admin",
   },
   {
