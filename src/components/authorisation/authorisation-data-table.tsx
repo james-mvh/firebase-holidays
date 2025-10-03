@@ -28,7 +28,9 @@ interface DataTableProps {
 }
 
 export function AuthorisationDataTable({ data }: DataTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'createdAt', desc: true }
+  ]);
   const columns = React.useMemo(() => createAuthorisationColumns(), []);
 
 
@@ -89,7 +91,7 @@ export function AuthorisationDataTable({ data }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No pending requests.
+                  No requests found for this filter.
                 </TableCell>
               </TableRow>
             )}

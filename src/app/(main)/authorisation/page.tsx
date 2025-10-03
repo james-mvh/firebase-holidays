@@ -1,16 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getPendingRequestsForManager, getUsers, getDepartments } from '@/lib/data';
+import { getRequestsForManager, getUsers, getDepartments } from '@/lib/data';
 import { getCurrentUser } from '@/lib/auth';
 import { notFound } from 'next/navigation';
 import { AuthorisationDataTable } from '@/components/authorisation/authorisation-data-table';
-import type { Department } from '@/lib/types';
+import { AuthorisationStatusFilter } from '@/components/authorisation/authorisation-status-filter';
+import type { HolidayRequestStatus } from '@/lib/types';
 
-export default async function AuthorisationPage() {
+export default async function AuthorisationPage({
+  searchParams,
+}: {
+  searchParams?: { status?: HolidayRequestStatus | 'all' };
+}) {
   const manager = await getCurrentUser();
   if (!manager) {
     notFound();
   }
-  const requests = await getPendingRequestsForManager(manager.id);
+
+  const currentStatus = searchParams?.status || 'pending';
+
+  const requests = await getRequestsForManager(manager.id, currentStatus === 'all' ? undefined : currentStatus);
   const users = await getUsers();
   const departments = await getDepartments();
 
@@ -27,13 +35,15 @@ export default async function AuthorisationPage() {
     };
   });
 
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold font-headline">Holiday Authorisation</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Pending Requests</CardTitle>
+          <CardTitle>Holiday Requests</CardTitle>
+          <div className="pt-4">
+             <AuthorisationStatusFilter currentStatus={currentStatus} />
+          </div>
         </CardHeader>
         <CardContent>
            <AuthorisationDataTable data={requestsWithDetails} />

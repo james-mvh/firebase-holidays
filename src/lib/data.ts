@@ -213,15 +213,25 @@ export async function getHolidaysForUser(
 }
 
 export async function getUsersByDepartment(
-  departmentId: string
+  departmentId: string,
+  includeArchived = false
 ): Promise<User[]> {
-  const q = query(
-    collections.users,
-    where("departmentId", "==", departmentId)
-  ).withConverter(userConverter);
+  let q;
+  if (includeArchived) {
+    q = query(
+      collections.users,
+      where("departmentId", "==", departmentId)
+    ).withConverter(userConverter);
+  } else {
+    q = query(
+      collections.users,
+      where("departmentId", "==", departmentId),
+      where("archived", "==", false)
+    ).withConverter(userConverter);
+  }
+
   const snapshot = await getDocs(q);
-  const result = snapshot.docs.map((doc) => doc.data());
-  return result;
+  return snapshot.docs.map((doc) => doc.data());
 }
 
 export async function getHolidaysForDepartment(
@@ -246,6 +256,14 @@ export async function getHolidaysForDepartment(
 export async function getPendingRequestsForManager(
   managerId: string
 ): Promise<HolidayRequest[]> {
+  return getRequestsForManager(managerId, 'pending');
+}
+
+
+export async function getRequestsForManager(
+  managerId: string,
+  status?: HolidayRequestStatus
+): Promise<HolidayRequest[]> {
   const manager = await getUserById(managerId);
   if (!manager) return [];
 
@@ -255,27 +273,28 @@ export async function getPendingRequestsForManager(
   if (manager.role === "admin") {
     const allUsers = await getUsers();
     usersToManage = allUsers.filter(
-      (u) =>
-        // u.id !== managerId &&
-        !u.archived
+      (u) => !u.archived
     );
   }
   // Managers can manage their department
   else if (manager.role === "manager") {
     usersToManage = await getUsersByDepartment(manager.departmentId);
-    // usersToManage = usersToManage.filter((u) => u.id !== managerId);
   }
 
   if (usersToManage.length === 0) return [];
 
   const userIdsToManage = usersToManage.map((u) => u.id);
 
+  const queryConstraints = [
+    where("userId", "in", userIdsToManage),
+    status ? where("status", "==", status) : null,
+  ].filter(Boolean) as any[];
+
   const q = query(
     collections.holidayRequests,
-    where("userId", "in", userIdsToManage),
-    where("status", "==", "pending")
+    ...queryConstraints
   ).withConverter(holidayRequestConverter);
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => doc.data());
+  return snapshot.docs.map((doc) => doc.data()).sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
