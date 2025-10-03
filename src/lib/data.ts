@@ -220,20 +220,19 @@ export async function getUsersByDepartment(
   if (includeArchived) {
     q = query(
       collections.users,
-      where('departmentId', '==', departmentId)
+      where("departmentId", "==", departmentId)
     ).withConverter(userConverter);
   } else {
     q = query(
       collections.users,
-      where('departmentId', '==', departmentId),
-      where('archived', '!=', true)
+      where("departmentId", "==", departmentId),
+      where("archived", "!=", true)
     ).withConverter(userConverter);
   }
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data());
+  return snapshot.docs.map((doc) => doc.data());
 }
-
 
 export async function getHolidaysForDepartment(
   departmentId: string,
